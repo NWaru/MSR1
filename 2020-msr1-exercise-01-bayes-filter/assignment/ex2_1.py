@@ -39,8 +39,8 @@ def motion_model(action, belief):
     
 def sensor_model(observation, belief, world):
     # add code here
-    p_white = 0.9
-    p_black = 0.7
+    p_white = 0.7
+    p_black = 0.9
 
     p_hit, p_miss = (p_black, 1-p_white) if observation == 0 else (p_white, 1-p_black)
     eta = 0
