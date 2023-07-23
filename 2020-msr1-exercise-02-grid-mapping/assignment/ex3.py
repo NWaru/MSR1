@@ -60,14 +60,17 @@ def bresenham(x0, y0, x1, y1):
     l = np.array(list(bh.bresenham(x0, y0, x1, y1)))
     return l
     
-# def prob2logodds(p):
+def prob2logodds(p):
     # add code here
-    
-# def logodds2prob(l):
-    # add code here    
-    
-# def inv_sensor_model(cell, endpoint, prob_occ, prob_free):
+    return np.log(p/(1-p))
+
+def logodds2prob(l):
     # add code here
+    return np.exp(l) / (1 + np.exp(l))
+    
+def inv_sensor_model(cell, endpoint, prob_occ, prob_free):
+    # add code here
+    pass
 
 # def grid_mapping_with_known_poses(ranges_raw, poses_raw, occ_gridmap, map_res, prob_occ, prob_free, prior):
     # add code here
