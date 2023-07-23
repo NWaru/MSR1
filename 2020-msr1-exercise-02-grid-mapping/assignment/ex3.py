@@ -55,7 +55,7 @@ def poses2cells(w_pose, gridmap, map_res):
     # covert to map frame
     m_pose = world2map(w_pose, gridmap, map_res)
     return m_pose  
-
+ 
 def bresenham(x0, y0, x1, y1):
     l = np.array(list(bh.bresenham(x0, y0, x1, y1)))
     return l
@@ -70,7 +70,22 @@ def logodds2prob(l):
     
 def inv_sensor_model(cell, endpoint, prob_occ, prob_free):
     # add code here
-    pass
+    cells  = bresenham(cell[0], cell[1], endpoint[0], endpoint[1])
+    model_list = []
+
+    for i in range(len(cells)):
+        if (cells[i]  - endpoint).any():
+            print(cells[i])
+            print(endpoint)
+            model_list.append([cells[i][0], cells[i][1], prob_free])
+        else:
+            model_list.append([cells[i][0], cells[i][1], prob_occ])
+
+    model = np.hstack(tuple(model_list))
+
+    return model
+
+
 
 # def grid_mapping_with_known_poses(ranges_raw, poses_raw, occ_gridmap, map_res, prob_occ, prob_free, prior):
     # add code here
