@@ -4,8 +4,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import bresenham as bh
+import warnings
+warnings.filterwarnings("error")
 
 def plot_gridmap(gridmap):
+    gridmap = np.array(gridmap, dtype=np.float64)
     plt.figure()
     plt.imshow(gridmap, cmap='Greys',vmin=0, vmax=1)
     
@@ -15,9 +18,9 @@ def init_gridmap(size, res):
 
 def world2map(pose, gridmap, map_res):
     origin = np.array(gridmap.shape)/2
-    new_pose = np.zeros(1,2)
-    new_pose[0] = np.round(pose[0]/map_res) + origin[0];
-    new_pose[1] = np.round(pose[1]/map_res) + origin[1];
+    new_pose = np.zeros((pose.shape))
+    new_pose[0:] = np.round(pose[0:]/map_res) + origin[0]
+    new_pose[1:] = np.round(pose[1:]/map_res) + origin[1]
     return new_pose.astype(int)
 
 def v2t(pose):
@@ -66,7 +69,9 @@ def prob2logodds(p):
 
 def logodds2prob(l):
     # add code here
+    l = np.array(l, dtype=np.float128)
     return np.exp(l) / (1 + np.exp(l))
+    #return 1 - (1 / (1 + np.exp(l)))
     
 def inv_sensor_model(cell, endpoint, prob_occ, prob_free):
     # add code here
@@ -75,17 +80,24 @@ def inv_sensor_model(cell, endpoint, prob_occ, prob_free):
 
     for i in range(len(cells)):
         if (cells[i]  - endpoint).any():
-            print(cells[i])
-            print(endpoint)
             model_list.append([cells[i][0], cells[i][1], prob_free])
         else:
             model_list.append([cells[i][0], cells[i][1], prob_occ])
 
-    model = np.hstack(tuple(model_list))
+    model = np.hstack(tuple(model_list)).reshape(len(model_list), 3)
 
     return model
 
+def grid_mapping_with_known_poses(ranges_raw, poses_raw, occ_gridmap, map_res, prob_occ, prob_free, prior):
+    occ_gridmap = prob2logodds(occ_gridmap)
 
+    for i in range(len(poses_raw)):
+        cell = poses2cells(poses_raw[i], occ_gridmap, map_res)
+        endpoints = ranges2cells(ranges_raw[i], poses_raw[i], occ_gridmap, map_res)
+        for j in range(len(endpoints[0])):
+            endpoint = np.array([endpoints[0][j], endpoints[1][j]])
+            ism = inv_sensor_model(cell, endpoint, prob_occ, prob_free)
+            for k in range(len(ism)):
+                occ_gridmap[int(ism[k][0])][int(ism[k][1])] += (prob2logodds(ism[k][2]) - prob2logodds(prior))
 
-# def grid_mapping_with_known_poses(ranges_raw, poses_raw, occ_gridmap, map_res, prob_occ, prob_free, prior):
-    # add code here
+    return logodds2prob(occ_gridmap)               
